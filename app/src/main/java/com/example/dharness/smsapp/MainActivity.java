@@ -55,14 +55,16 @@ public class MainActivity extends ActionBarActivity {
             strbody += cursor.getString(cursor.getColumnIndex("body"));
             textList.add(strbody);
 
+            // SMS messages have a hashmap of all their data
             HashMap map = new HashMap();
-            for(String s : config){
+            for(String s : config){ // add all the data for one SMS to its map
                 map.put(s, cursor.getString(cursor.getColumnIndex(s)));
             }
 
+            // save the SMS
             smsList.add(new SMS(map));
         }
-        Collections.reverse(textList);
+        Collections.reverse(smsList);
         //Do all of your listView stuff
         lv = (ListView) findViewById(R.id.listView);
 
@@ -73,7 +75,7 @@ public class MainActivity extends ActionBarActivity {
             }
         });
 
-        adapter =new SMSListAdapter(this, textList);
+        adapter = new SMSListAdapter(this, smsList);
         lv.setAdapter(adapter);
 
         mButton.setOnClickListener(

@@ -17,7 +17,7 @@ public class SMSListAdapter extends BaseAdapter {
 
     private Activity activity;
     private static LayoutInflater layoutInflater = null;
-    private ArrayList<String> messages;
+    private ArrayList<SMS> messages;
 
     public SMSListAdapter(Activity activity, ArrayList messages) {
         this.activity = activity;
@@ -51,7 +51,7 @@ public class SMSListAdapter extends BaseAdapter {
             vi = layoutInflater.inflate(R.layout.received_sms_row, null);
 
         TextView title = (TextView)vi.findViewById(R.id.title);
-        title.setText(messages.get(position));
+        title.setText(messages.get(position).getDataByName("body"));
         return vi;
     }
 }
