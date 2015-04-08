@@ -47,18 +47,18 @@ public class SMSListAdapter extends BaseAdapter {
     //This is the place where you build up the actual view tou wish to inflate
     public View getView(int position, View convertView, ViewGroup parent) {
         SMS currentSMS = messages.get(position);
-        View vi=convertView;
-        if(convertView==null){
+        View vi;
+//        if(convertView==null){
             if (currentSMS.getDataByName("type").equals("1")){
                     vi = layoutInflater.inflate(R.layout.received_sms_row, null);
             }else {
                 vi = layoutInflater.inflate(R.layout.sent_sms_row, null);
             }
-        }
+//        }
 
 
         TextView title = (TextView)vi.findViewById(R.id.title);
-        title.setText(currentSMS.getDataByName("body"));
+        title.setText(currentSMS.getDataByName("body") + " ---" + currentSMS.getDataByName("type"));
         return vi;
     }
 }
