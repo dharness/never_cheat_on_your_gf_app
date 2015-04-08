@@ -17,6 +17,23 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 
+import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.IntentFilter;
+import android.os.Bundle;
+
+import android.app.PendingIntent;
+import android.content.Intent;
+import android.telephony.SmsManager;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
+
 
 public class MainActivity extends ActionBarActivity {
 
@@ -25,7 +42,16 @@ public class MainActivity extends ActionBarActivity {
     ArrayList<String> textList;
     ArrayList<SMS> smsList;
     MainActivity self;
+    IntentFilter intentFilter;
+    Button mButton;
 
+    private BroadcastReceiver intentReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            TextView SMSes = (TextView) findViewById(R.id.textView1);
+            SMSes.setText(intent.getExtras().getString("sms"));
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +59,10 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
         self = this;
 
-        Button mButton = (Button)findViewById(R.id.sendButton);
+        intentFilter = new IntentFilter();
+        intentFilter.addAction("SMS_RECEIVED_ACTION");
+
+        mButton = (Button)findViewById(R.id.sendButton);
         final EditText mEdit   = (EditText)findViewById(R.id.editText);
 
         // begin to fill the list with messages from Casey
@@ -81,21 +110,15 @@ public class MainActivity extends ActionBarActivity {
             {
                 public void onClick(View view)
                 {
-                    textList.add( mEdit.getText().toString());
+                    sendSMS("5198721420", mEdit.getText().toString());
+                    textList.add(mEdit.getText().toString());
                     lv.post(new Runnable() {
                         public void run() {
                             lv.setSelection(lv.getCount() - 1);
                         }
                     });
-
-
                 }
             });
-
-
-
-
-
 
     }
 
@@ -121,6 +144,67 @@ public class MainActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    protected void onResume() {
+        registerReceiver(intentReceiver, intentFilter);
+        super.onResume();
+    }
 
+    @Override
+    protected void onPause() {
+        unregisterReceiver(intentReceiver);
+        super.onPause();
+    }
+
+    private void sendSMS(String phoneNumber, String message) {
+
+        String SENT = "SMS_SENT";
+        String DELIVERED = "SMS_DELIVERED";
+
+        PendingIntent sentPI = PendingIntent.getBroadcast(this, 0, new Intent(SENT), 0);
+
+        PendingIntent deliveredPI = PendingIntent.getBroadcast(this, 0, new Intent(DELIVERED), 0);
+
+        registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                switch (getResultCode()) {
+                    case Activity.RESULT_OK:
+                        Toast.makeText(getBaseContext(), "SMS sent", Toast.LENGTH_SHORT).show();
+                        break;
+                    case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
+                        Toast.makeText(getBaseContext(), "Generic failure", Toast.LENGTH_SHORT).show();
+                        break;
+                    case SmsManager.RESULT_ERROR_NO_SERVICE:
+                        Toast.makeText(getBaseContext(), "No service", Toast.LENGTH_SHORT).show();
+                        break;
+                    case SmsManager.RESULT_ERROR_NULL_PDU:
+                        Toast.makeText(getBaseContext(), "Null PDU", Toast.LENGTH_SHORT).show();
+                        break;
+                    case SmsManager.RESULT_ERROR_RADIO_OFF:
+                        Toast.makeText(getBaseContext(), "Radio off", Toast.LENGTH_SHORT).show();
+                        break;
+                }
+
+            }
+        }, new IntentFilter(SENT));
+
+        registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                switch (getResultCode()) {
+                    case Activity.RESULT_OK:
+                        Toast.makeText(getBaseContext(), "SMS delivered", Toast.LENGTH_SHORT).show();
+                        break;
+                    case Activity.RESULT_CANCELED:
+                        Toast.makeText(getBaseContext(), "SMS not delivered", Toast.LENGTH_SHORT).show();
+                        break;
+                }
+            }
+        }, new IntentFilter(DELIVERED));
+
+        SmsManager sms = SmsManager.getDefault();
+        sms.sendTextMessage(phoneNumber, null, message, sentPI, deliveredPI);
+    }
     // UTILITY FUNCTIONS
 }
