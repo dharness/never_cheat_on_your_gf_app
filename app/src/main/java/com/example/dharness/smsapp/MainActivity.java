@@ -39,7 +39,6 @@ public class MainActivity extends ActionBarActivity {
 
     ListView lv;
     SMSListAdapter adapter;
-    ArrayList<String> textList;
     ArrayList<SMS> smsList;
     MainActivity self;
     IntentFilter intentFilter;
@@ -66,7 +65,6 @@ public class MainActivity extends ActionBarActivity {
         final EditText mEdit   = (EditText)findViewById(R.id.editText);
 
         // begin to fill the list with messages from Casey
-        textList = new ArrayList<>();
         smsList = new ArrayList<>();
         Uri uri = Uri.parse("content://sms/");
 
@@ -79,11 +77,6 @@ public class MainActivity extends ActionBarActivity {
         // populate the list with texts
         while (cursor.moveToNext())
         {
-            String strbody = cursor.getString(cursor.getColumnIndex("address")) + " ";
-            strbody += cursor.getString(cursor.getColumnIndex("type"));
-            strbody += cursor.getString(cursor.getColumnIndex("body"));
-            textList.add(strbody);
-
             // SMS messages have a hashmap of all their data
             HashMap map = new HashMap();
             for(String s : config){ // add all the data for one SMS to its map
@@ -113,7 +106,6 @@ public class MainActivity extends ActionBarActivity {
                 public void onClick(View view)
                 {
                     sendSMS("5198721420", mEdit.getText().toString());
-                    textList.add(mEdit.getText().toString());
                     lv.post(new Runnable() {
                         public void run() {
                             lv.setSelection(lv.getCount() - 1);
