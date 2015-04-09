@@ -34,8 +34,17 @@ import android.widget.Toast;
 import android.content.BroadcastReceiver;
 import android.content.IntentFilter;
 
+import android.provider.ContactsContract.Contacts;
+import android.provider.ContactsContract.CommonDataKinds.Phone;
+
 
 public class MainActivity extends ActionBarActivity {
+
+    private static final String DEBUG_TAG = "SMSapp";
+
+    private static final int CONTACT_PICKER_RESULT = 1001;
+
+    String phoneNumber = "";
 
     ListView lv;
     SMSListAdapter adapter;
@@ -44,6 +53,11 @@ public class MainActivity extends ActionBarActivity {
     IntentFilter intentFilter;
     Button mButton;
 
+    public void doLaunchContactPicker(View view) {
+        Intent contactPickerIntent = new Intent(Intent.ACTION_PICK,
+                Contacts.CONTENT_URI);
+        startActivityForResult(contactPickerIntent, CONTACT_PICKER_RESULT);
+    }
     private BroadcastReceiver intentReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -51,6 +65,62 @@ public class MainActivity extends ActionBarActivity {
             SMSes.setText(intent.getExtras().getString("sms"));
         }
     };
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK) {
+            switch (requestCode) {
+                case CONTACT_PICKER_RESULT:
+                    Cursor cursor = null;
+                    String phoneNum = "";
+                    try {
+                        // Handle contact results
+                        Uri result = data.getData();
+                        Log.v(DEBUG_TAG, "Got a contact result: " + result.toString());
+                        String id = result.getLastPathSegment();
+
+                        // Query for phone
+                        cursor = getContentResolver().query(
+                                Phone.CONTENT_URI, null, Phone.CONTACT_ID + "=?", new String[]{id}, null
+                        );
+                        cursor.moveToFirst();
+                        String columns[] = cursor.getColumnNames();
+                        for (String column : columns) {
+                            int index = cursor.getColumnIndex(column);
+                            Log.v(DEBUG_TAG, "Column: " + column + " == [" + cursor.getString(index) + "]");
+                        }
+
+                        int phoneIdx = cursor.getColumnIndex(Phone.DATA);
+
+                        // Only selects the first phone number -- maybe give option to select their own
+                        if (cursor.moveToFirst()) {
+                            phoneNum = cursor.getString(phoneIdx);
+                            Log.v(DEBUG_TAG, "Got phone: " + phoneNum);
+                        }
+                        else {
+                            Log.w(DEBUG_TAG, "No results");
+                        }
+                    }
+                    catch (Exception e) {
+                        Log.e(DEBUG_TAG, "Failed to get phone data", e);
+                    }
+                    finally {
+                        if (cursor != null) {
+                            cursor.close();
+                        }
+                        EditText recipientEntry   = (EditText)findViewById(R.id.recipient);
+                        recipientEntry.setText(phoneNum);
+                        phoneNumber = phoneNum;
+                        if (phoneNum.length() == 0) {
+                            Toast.makeText(this, "No phone number found for contact", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                    break;
+            }
+        }
+        else {
+            Log.w(DEBUG_TAG, "Warning: activity result not ok");
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,17 +130,17 @@ public class MainActivity extends ActionBarActivity {
 
         intentFilter = new IntentFilter();
         intentFilter.addAction("SMS_RECEIVED_ACTION");
-
-        mButton = (Button)findViewById(R.id.sendButton);
         final EditText mEdit   = (EditText)findViewById(R.id.editText);
+        mButton = (Button)findViewById(R.id.sendButton);
 
         // begin to fill the list with messages from Casey
+
+        phoneNumber = mEdit.getText().toString();
         smsList = new ArrayList<>();
         Uri uri = Uri.parse("content://sms/");
 
         ContentResolver contentResolver = getContentResolver();
 
-        String phoneNumber = "+12264483072";
         String sms = "address='"+ phoneNumber + "'";
         String[] config = new String[]{"_id","thread_id","address","person","date", "protocol", "read","status","type","reply_path_present","subject","body", "service_center", "locked"};
         Cursor cursor = contentResolver.query(uri, config, sms, null,   null);
