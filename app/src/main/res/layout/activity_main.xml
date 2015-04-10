@@ -9,21 +9,26 @@
         android:gravity="center"
         android:background ="#268496" >
 
-    <EditText
-        android:layout_height="wrap_content"
-        android:hint="Recipient"
-        android:id="@+id/recipient"
-        android:inputType= "phone"
-        android:layout_width="wrap_content"
-        android:layout_toLeftOf="@+id/recipientPicker"
-        android:layout_alignParentLeft="true"></EditText>
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/recipientPicker"
-        android:text="Browse"
-        android:layout_alignParentRight="true"
-        android:onClick="doLaunchContactPicker"></Button>
+    <!--<EditText-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:hint="Recipient"-->
+        <!--android:id="@+id/recipient"-->
+        <!--android:inputType= "phone"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_toLeftOf="@+id/recipientPicker"-->
+        <!--android:layout_alignParentLeft="true">-->
+
+        <!--</EditText>-->
+
+    <!--<Button-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:id="@+id/recipientPicker"-->
+        <!--android:text="Browse"-->
+        <!--android:layout_alignParentRight="true"-->
+        <!--android:onClick="doLaunchContactPicker">-->
+
+        <!--</Button>-->
 
         <ListView
             android:id="@+id/listView"
