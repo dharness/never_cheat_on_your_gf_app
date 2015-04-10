@@ -28,7 +28,7 @@ public class SMSListAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        return messages.size();
+        return this.messages.size();
     }
 
     @Override
