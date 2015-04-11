@@ -21,14 +21,17 @@ import java.util.HashMap;
 
 public class SMSReceiver extends BroadcastReceiver{
 
-    public SMSReceiver(){
-        Log.w("Create", "In create");
+    UIManager uiManager;
+
+    public SMSReceiver(UIManager uiManager){
+        this.uiManager = uiManager;
     }
 
     @Override
     public void onReceive(Context context, Intent intent)
     {
         Log.w("TOMORROW", "In on recieve in the good version");
+        uiManager.updateList("15198721420");
 //        updateList("15198721420");
 
 //        MainActivity.updateList("15198721420");

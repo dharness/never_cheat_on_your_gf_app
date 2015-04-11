@@ -28,12 +28,6 @@ import java.util.HashMap;
 
 public class MainActivity extends ActionBarActivity {
 
-    ListView lv;
-    Button sendButton;
-    EditText msgText;
-    SMSListAdapter adapter;
-    ArrayList<SMS> smsList;
-    ContentResolver contentResolver;
     SMSReceiver receiver;
 
     @Override
@@ -41,33 +35,24 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        receiver =  new SMSReceiver();
+        UIManager uiManager = new UIManager(this);
+        uiManager.updateList("15198721420");
+
+        receiver =  new SMSReceiver(uiManager);
         registerReceiver(receiver, new IntentFilter("android.provider.Telephony.SMS_RECEIVED"));
 
-        //grab a reference to our UI components
-        msgText = (EditText)findViewById(R.id.editText);
-        sendButton = (Button)findViewById(R.id.sendButton);
-        lv = (ListView)findViewById(R.id.listView);
-
-        contentResolver = getContentResolver();
-        bindList();
-        updateList("15198721420");
-
-        adapter = new SMSListAdapter(this, smsList);
-        lv.setAdapter(adapter);
-
-        sendButton.setOnClickListener(
-                new View.OnClickListener() {
-                    public void onClick(View view) {
-                        sendBroadcast(new Intent("some.action"));
-                        sendSMS("12264483072", msgText.getText().toString());
-                        lv.post(new Runnable() {
-                            public void run() {
-                                lv.setSelection(lv.getCount() - 1);
-                            }
-                        });
-                    }
-                });
+//        sendButton.setOnClickListener(
+//                new View.OnClickListener() {
+//                    public void onClick(View view) {
+//                        sendBroadcast(new Intent("some.action"));
+//                        sendSMS("12264483072", msgText.getText().toString());
+//                        lv.post(new Runnable() {
+//                            public void run() {
+//                                lv.setSelection(lv.getCount() - 1);
+//                            }
+//                        });
+//                    }
+//                });
 
     }
 
@@ -154,48 +139,6 @@ public class MainActivity extends ActionBarActivity {
 
         SmsManager sms = SmsManager.getDefault();
         sms.sendTextMessage(phoneNumber, null, message, sentPI, deliveredPI);
-    }
-
-    // This function should only ever be called once
-    private void bindList(){
-        smsList = new ArrayList<>();
-        adapter = new SMSListAdapter(this, smsList);
-        lv.setAdapter(adapter);
-    }
-
-    private void updateList(String phoneNumber){
-        //reset the array, we are about to refill
-        smsList = new ArrayList<>();
-
-        //set up what we want, and who we want it from
-        Uri uri = Uri.parse("content://sms/");
-        String[] config = new String[]{"_id","thread_id","address","person","date", "protocol", "read","status","type","reply_path_present","subject","body", "service_center", "locked"};
-        String sms = "address='"+ "+" + phoneNumber + "'";
-
-        // Loop through all the messages
-        Cursor cursor = contentResolver.query(uri, config, sms, null,   null);
-
-        // populate the list with texts
-        while (cursor.moveToNext())
-        {
-            // SMS messages have a HashMap of all their data
-            HashMap<String, String> map = new HashMap<>();
-            for(String s : config){ // add all the data for one SMS to its map
-                map.put(s, cursor.getString(cursor.getColumnIndex(s)));
-            }
-
-            // save the SMS
-            smsList.add(new SMS(map));
-        }
-        Collections.reverse(smsList);
-
-        //scroll to the bottom of the list
-        lv.post(new Runnable() {
-            public void run() {
-                lv.setSelection(lv.getCount() - 1);
-            }
-        });
-
     }
 
 }
